@@ -1,0 +1,230 @@
+create database healthcare;
+use healthcare;
+
+create table patients (
+	patient_id INT AUTO_INCREMENT PRIMARY KEY,
+    first_name VARCHAR (50) NOT NULL,
+    last_name VARCHAR (50) NOT NULL,
+    gender ENUM('Male', 'Female', 'Other') NOT NULL,
+    date_of_birth DATE NOT NULL,
+    phone VARCHAR(15),
+    email VARCHAR(100),
+    address TEXT,
+    created_at TIMESTAMP default current_timestamp
+);
+
+create table lab_reports (
+	report_id INT auto_increment primary key,
+    patient_id int not null,
+    test_name varchar(100) not null,
+    test_date date not null,
+    result text,
+    doctor_name varchar(100),
+    report_file longblob,
+    created_at TIMESTAMP default current_timestamp,
+    
+    foreign key (patient_id)
+    references patients(patient_id)
+    on delete cascade
+);
+drop table medical_images;
+CREATE TABLE medical_images (
+    image_id INT AUTO_INCREMENT PRIMARY KEY,
+    patient_id INT NOT NULL,
+    image_type VARCHAR(50),
+    image_date DATE,
+    image_path varchar(200),
+    description1 TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+    FOREIGN KEY (patient_id)
+    REFERENCES patients(patient_id)
+    ON DELETE CASCADE
+);
+
+-- create - C
+INSERT INTO patients 
+(first_name, last_name, gender, date_of_birth, phone, email, address)
+VALUES
+('John', 'Doe', 'Male', '1995-05-10', '9876543210', 'john@example.com', 'Mumbai'),
+('Alice', 'Smith', 'Female', '1998-08-21', '9123456789', 'alice@example.com', 'Delhi'),
+('Rahul', 'Verma', 'Male', '1990-12-02', '9988776655', 'rahul@example.com', 'Bangalore');
+
+INSERT INTO lab_reports
+(patient_id, test_name, test_date, result, doctor_name)
+VALUES
+(1, 'Blood Test', '2026-02-01', 'Normal', 'Dr. Sharma'),
+(1, 'Urine Test', '2026-02-02', 'Normal', 'Dr. Mehta'),
+(2, 'X-Ray', '2026-02-01', 'No fracture', 'Dr. Rao');
+
+INSERT INTO medical_images
+(patient_id, image_type, image_date, image_path, description1)
+VALUES
+(1, 'X-Ray', '2026-02-01', '/storage/p1/xray1.jpg', 'Chest X-Ray'),
+(1, 'MRI', '2026-02-02', '/storage/p1/mri1.dcm', 'Brain MRI'),
+(2, 'CT Scan', '2026-02-01', '/storage/p2/ct1.dcm', 'Abdominal CT');
+
+INSERT INTO patients 
+(first_name, last_name, gender, date_of_birth, phone, email, address)
+VALUES
+('Priya', 'Kumar', 'Female', '1997-03-15', '9011223344', 'priya@example.com', 'Chennai'),
+('Amit', 'Shah', 'Male', '1988-07-09', '9090909090', 'amit@example.com', 'Ahmedabad'),
+('Neha', 'Patel', 'Female', '1993-11-30', '9191919191', 'neha@example.com', 'Pune');
+
+INSERT INTO lab_reports
+(patient_id, test_name, test_date, result, doctor_name)
+VALUES
+(1, 'Blood Test', '2026-01-15', 'Normal', 'Dr. Sharma'),
+(1, 'Urine Test', '2026-02-01', 'Normal', 'Dr. Mehta'),
+
+(2, 'Blood Test', '2026-01-20', 'Low Hemoglobin', 'Dr. Rao'),
+
+(3, 'X-Ray', '2026-02-05', 'No fracture', 'Dr. Singh'),
+(3, 'Blood Test', '2026-02-10', 'Normal', 'Dr. Singh'),
+(3, 'ECG', '2026-02-15', 'Normal', 'Dr. Singh'),
+
+(4, 'Blood Test', '2026-01-25', 'High Cholesterol', 'Dr. Iyer'),
+
+(5, 'Urine Test', '2026-02-12', 'Normal', 'Dr. Patel'),
+(5, 'Blood Test', '2026-02-14', 'Normal', 'Dr. Patel'),
+
+(6, 'Blood Test', '2026-02-20', 'Normal', 'Dr. Das');
+
+
+INSERT INTO medical_images
+(patient_id, image_type, image_date, image_path, description1)
+VALUES
+(1, 'X-Ray', '2026-02-01', '/storage/p1/xray1.jpg', 'Chest X-Ray'),
+(1, 'MRI', '2026-02-02', '/storage/p1/mri1.dcm', 'Brain MRI'),
+
+(2, 'X-Ray', '2026-01-22', '/storage/p2/xray1.jpg', 'Arm X-Ray'),
+
+(3, 'CT Scan', '2026-02-06', '/storage/p3/ct1.dcm', 'Abdominal CT'),
+(3, 'X-Ray', '2026-02-08', '/storage/p3/xray1.jpg', 'Leg X-Ray'),
+(3, 'MRI', '2026-02-12', '/storage/p3/mri1.dcm', 'Spine MRI'),
+
+(4, 'X-Ray', '2026-01-26', '/storage/p4/xray1.jpg', 'Chest X-Ray'),
+
+(5, 'MRI', '2026-02-15', '/storage/p5/mri1.dcm', 'Knee MRI'),
+
+(6, 'CT Scan', '2026-02-21', '/storage/p6/ct1.dcm', 'Head CT');
+
+-- read - R
+
+select * from patients;
+
+select * from lab_reports;
+
+select * from medical_images;
+
+-- update - U
+
+UPDATE patients
+SET phone = '9998887776'
+WHERE patient_id = 1;
+
+UPDATE lab_reports
+SET result = 'Hemoglobin slightly low'
+WHERE report_id = 1;
+
+-- delete - D
+
+DELETE FROM medical_images
+WHERE image_id = 1;
+
+DELETE FROM patients
+WHERE patient_id = 1;
+
+-- aggregation functions
+-- Count Total Lab Reports per Patient
+SELECT 
+    p.patient_id,
+    CONCAT(p.first_name, ' ', p.last_name) AS patient_name,
+    COUNT(l.report_id) AS total_reports
+FROM patients p
+LEFT JOIN lab_reports l 
+    ON p.patient_id = l.patient_id
+GROUP BY 
+    p.patient_id, p.first_name, p.last_name
+ORDER BY 
+    total_reports DESC;
+
+-- Patients with More Than 2 Lab Reports
+SELECT 
+    p.patient_id,
+    CONCAT(p.first_name, ' ', p.last_name) AS patient_name,
+    COUNT(l.report_id) AS report_count
+FROM patients p
+JOIN lab_reports l 
+    ON p.patient_id = l.patient_id
+GROUP BY 
+    p.patient_id, p.first_name, p.last_name
+HAVING 
+    COUNT(l.report_id) > 2
+ORDER BY 
+    report_count DESC;
+    
+
+-- Number of Medical Images by Type
+SELECT 
+    image_type,
+    COUNT(image_id) AS total_images
+FROM medical_images
+GROUP BY 
+    image_type
+HAVING 
+    COUNT(image_id) >= 1
+ORDER BY 
+    total_images DESC;
+
+-- Monthly Lab Reports Summary
+SELECT 
+    YEAR(test_date) AS year,
+    MONTH(test_date) AS month,
+    COUNT(report_id) AS total_tests
+FROM lab_reports
+GROUP BY 
+    YEAR(test_date), MONTH(test_date)
+HAVING 
+    COUNT(report_id) > 0
+ORDER BY 
+    year DESC, month DESC;
+
+-- Patients with Both Lab Reports AND Medical Images
+
+SELECT 
+    p.patient_id,
+    CONCAT(p.first_name, ' ', p.last_name) AS patient_name,
+    COUNT(DISTINCT l.report_id) AS total_reports,
+    COUNT(DISTINCT m.image_id) AS total_images
+FROM patients p
+LEFT JOIN lab_reports l 
+    ON p.patient_id = l.patient_id
+LEFT JOIN medical_images m 
+    ON p.patient_id = m.patient_id
+GROUP BY 
+    p.patient_id, p.first_name, p.last_name
+HAVING 
+    COUNT(DISTINCT l.report_id) > 0
+    AND COUNT(DISTINCT m.image_id) > 0
+ORDER BY 
+    total_images DESC;
+
+-- Top 5 Most Active Patients
+SELECT 
+    p.patient_id,
+    CONCAT(p.first_name, ' ', p.last_name) AS patient_name,
+    COUNT(DISTINCT l.report_id) 
+    + COUNT(DISTINCT m.image_id) AS total_records
+FROM patients p
+LEFT JOIN lab_reports l 
+    ON p.patient_id = l.patient_id
+LEFT JOIN medical_images m 
+    ON p.patient_id = m.patient_id
+GROUP BY 
+    p.patient_id, p.first_name, p.last_name
+HAVING 
+    total_records > 0
+ORDER BY 
+    total_records DESC
+LIMIT 5;
